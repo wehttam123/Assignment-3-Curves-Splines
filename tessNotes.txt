@@ -1,0 +1,41 @@
+What are Tesselation Shaders?
+A stage in available in openGL that allows creation of geometry for a scene by interpolating exsisting geometry.
+
+Vertex > TCS > Tesselator > TES > Fragment 
+
+New Primitive GL_PATCHES (variable number of verts per patch!)
+Every n​ vertices in VBO is a new patch primitive.
+where n is defined by
+void glPatchParameteri​(GL_PATCH_VERTICES, GLint value​​);
+
+TCS Tesselation Control Shader
+--------------------------------
+Executes once for each vertex passed in.
+TCS determines the amount of tessellation that a primitive should have.
+Every TCS invocation for an input patch has access to the same input data, save for gl_InvocationID​ (That is, it gets to see all the patch data)
+gl_TessLevelInner and gl_TessLevelOuter
+The inner tessellation level controls the number of “nested” primitives, and the outer tessellation level controls the number of times to subdivide each edge.
+
+Tesselator
+----------------------
+Vertices are passed to tesselator and new vertices are created
+
+TES
+----------------------
+layout(triangles, equal_spacing, cw) in; //also controls how tesselator creates new geometry
+	triangles, quads, and isolines
+	equal_spacing, cw are optional
+
+TES transforms new vertices
+Runs once for all output vertices
+
+The built-in gl_TessCoord variable lets us know where we are within the patch. In this case, the primitive mode is triangles, so gl_TessCoord is a barycentric coordinate. If we were performing quad subdivision, then it would be a UV coordinate and we’d ignore the Z component.
+
+https://computeranimations.wordpress.com/
+
+// Extra
+// If no TCS is present need to define this stuff
+void glPatchParameterfv​(GLenum pname​​, const GLfloat *values​​);
+When pname​ is GL_PATCH_DEFAULT_OUTER_LEVEL, values​ is a 4-element array of floats defining the four outer tessellation levels. 
+When pname​ is GL_PATCH_DEFAULT_INNER_LEVEL, values​ is a 2-element array of floats defining the two inner tessellation levels.
+These default values correspond to the TCS per-patch output variables gl_TessLevelOuter[4]​ and gl_TessLevelInner[2]​.

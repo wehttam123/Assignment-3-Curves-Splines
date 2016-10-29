@@ -20,6 +20,9 @@
 #define GLFW_INCLUDE_GLCOREARB
 #define GL_GLEXT_PROTOTYPES
 #include <GLFW/glfw3.h>
+
+static int level = 1; // Level of program
+
 /*
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
@@ -165,14 +168,68 @@ struct MyGeometry
 	{}
 };
 
+void GenerateQuadratic(MyGeometry *geometry, MyShader *shader, GLfloat (*coordinates)[2], GLfloat (*colour)[3])
+{
+
+	GLfloat vertices[][2] = {
+		{ coordinates[0][0], coordinates[0][1]},
+		{ coordinates[1][0], coordinates[1][1]},
+		{ coordinates[2][0], coordinates[2][1]}
+	};
+
+	GLfloat colours[][3] = {
+		{ colour[0][0], colour[0][1], colour[0][2] },
+		{ colour[1][0], colour[1][1], colour[1][2] },
+		{ colour[2][0], colour[2][1], colour[2][2] }
+	};
+
+	geometry->elementCount = 3;
+
+	// these vertex attribute indices correspond to those specified for the
+	// input variables in the vertex shader
+	const GLuint VERTEX_INDEX = 0;
+	const GLuint COLOUR_INDEX = 1;
+
+	// create an array buffer object for storing our vertices
+	glGenBuffers(1, &geometry->vertexBuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, geometry->vertexBuffer);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+	// create another one for storing our colours
+	glGenBuffers(1, &geometry->colourBuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, geometry->colourBuffer);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(colours), colours, GL_STATIC_DRAW);
+
+	// create a vertex array object encapsulating all our vertex attributes
+	glGenVertexArrays(1, &geometry->vertexArray);
+	glBindVertexArray(geometry->vertexArray);
+
+	// associate the position array with the vertex array object
+	glBindBuffer(GL_ARRAY_BUFFER, geometry->vertexBuffer);
+	glVertexAttribPointer(VERTEX_INDEX, 2, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(VERTEX_INDEX);
+
+	// assocaite the colour array with the vertex array object
+	glBindBuffer(GL_ARRAY_BUFFER, geometry->colourBuffer);
+	glVertexAttribPointer(COLOUR_INDEX, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(COLOUR_INDEX);
+
+	// unbind our buffers, resetting to default state
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);
+
+	// check for OpenGL errors and return false if error occurred
+	CheckGLErrors();
+}
+
 // create buffers and fill with geometry data, returning true if successful
-bool InitializeGeometry(MyGeometry *geometry)
+/*bool InitializeGeometry(MyGeometry *geometry)
 {
 	// three vertex positions and assocated colours of a triangle
 	const GLfloat vertices[][2] = {
-		{ -.4f, .4f },
-		{ .8f, -.4f },
-		{ .0f, -.4f }
+		{ -4.0/50.0, 4.0/50.0 },
+		{ 8.0/50.0, -4.0/50.0 },
+		{ 0.0/50.0, -4.0/50.0 }
 	};
 
 	const GLfloat colours[][3] = {
@@ -218,6 +275,7 @@ bool InitializeGeometry(MyGeometry *geometry)
 	// check for OpenGL errors and return false if error occurred
 	return !CheckGLErrors();
 }
+*/
 
 // deallocate geometry-related objects
 void DestroyGeometry(MyGeometry *geometry)
@@ -232,7 +290,7 @@ void DestroyGeometry(MyGeometry *geometry)
 // --------------------------------------------------------------------------
 // Rendering function that draws our scene to the frame buffer
 
-void RenderScene(MyGeometry *geometry, MyShader *shader)
+/*void RenderScene(MyGeometry *geometry, MyShader *shader)
 {
 	// clear screen to a dark grey colour
 	glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
@@ -253,6 +311,63 @@ void RenderScene(MyGeometry *geometry, MyShader *shader)
 
 	// check for an report any OpenGL errors
 	CheckGLErrors();
+}*/
+
+void RenderBezier(MyGeometry *geometry, MyShader *shader)
+{
+	// bind our shader program and the vertex array object containing our
+	// scene geometry, then tell OpenGL to draw our geometry
+	glUseProgram(shader->program);
+	glBindVertexArray(geometry->vertexArray);
+	glDrawArrays(GL_PATCHES, 0, geometry->elementCount);
+
+	// reset state to default (no shader or geometry bound)
+	glBindVertexArray(0);
+	glUseProgram(0);
+
+	// check for an report any OpenGL errors
+	CheckGLErrors();
+}
+
+void RenderControlPoints(MyGeometry *geometry, MyShader *shader)
+{
+	// bind our shader program and the vertex array object containing our
+	// scene geometry, then tell OpenGL to draw our geometry
+	glUseProgram(shader->programNoTess);
+	glBindVertexArray(geometry->vertexArray);
+	glDrawArrays(GL_POINTS, 0, geometry->elementCount);
+
+	// reset state to default (no shader or geometry bound)
+	glBindVertexArray(0);
+	glUseProgram(0);
+
+	// check for an report any OpenGL errors
+	CheckGLErrors();
+}
+
+void RenderControlLines(MyGeometry *geometry, MyShader *shader)
+{
+	// bind our shader program and the vertex array object containing our
+	// scene geometry, then tell OpenGL to draw our geometry
+	glUseProgram(shader->programNoTess);
+	glBindVertexArray(geometry->vertexArray);
+	glDrawArrays(GL_LINE_STRIP, 0, geometry->elementCount);
+
+	// reset state to default (no shader or geometry bound)
+	glBindVertexArray(0);
+	glUseProgram(0);
+
+	// check for an report any OpenGL errors
+	CheckGLErrors();
+}
+
+void ClearScene(MyGeometry *geometry, MyShader *shader)
+{
+    // clear screen to a dark grey colour
+    glClearColor(0.2, 0.2, 0.2, 1.0);
+    glClear(GL_COLOR_BUFFER_BIT);
+
+    CheckGLErrors();
 }
 
 // --------------------------------------------------------------------------
@@ -268,8 +383,27 @@ void ErrorCallback(int error, const char* description)
 // handles keyboard input events
 void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
-	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
-		glfwSetWindowShouldClose(window, GL_TRUE);
+    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+        glfwSetWindowShouldClose(window, GL_TRUE);
+
+    if (action == GLFW_PRESS)
+    {
+      switch (key)
+      {
+        case GLFW_KEY_RIGHT :
+        if (level < 2)
+          level++;
+				else
+					level = 1;
+        break;
+        case GLFW_KEY_LEFT :
+        if (level > 1)
+          level--;
+				else
+					level = 2;
+        break;
+      }
+    }
 }
 
 // ==========================================================================
@@ -290,7 +424,7 @@ int main(int argc, char *argv[])
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	window = glfwCreateWindow(512, 512, "CPSC 453 Assignment #3", 0, 0);
+	window = glfwCreateWindow(1920, 1080, "CPSC 453 Assignment #3", 0, 0);
 	if (!window) {
 		cout << "Program failed to create GLFW window, TERMINATING" << endl;
 		glfwTerminate();
@@ -313,17 +447,105 @@ int main(int argc, char *argv[])
 
 	// call function to create and fill buffers with geometry data
 	MyGeometry geometry;
-	if (!InitializeGeometry(&geometry))
-		cout << "Program failed to intialize geometry!" << endl;
+//	if (!InitializeGeometry(&geometry))
+//		cout << "Program failed to intialize geometry!" << endl;
 
 	glPatchParameteri(GL_PATCH_VERTICES, 3);
 	glPointSize(5);
 
+	GLfloat vertices[3][2];
+	GLfloat colours[3][3];
+	float scale = 5.0f;
+
 	// run an event-triggered main loop
 	while (!glfwWindowShouldClose(window))
 	{
-		// call function to draw our scene
-		RenderScene(&geometry, &shader); //render scene with texture
+
+		ClearScene(&geometry, &shader);
+
+		vertices[0][0] = 1.0/scale; vertices[0][1] = 1.0/scale;
+		vertices[1][0] = 2.0/scale;  vertices[1][1] = -1.0/scale;
+		vertices[2][0] = 0.0/scale;  vertices[2][1] = -1.0/scale;
+
+		if(level == 2){
+			for (int i = 0; i < 3; i++){for (int j = 0; j < 3; j++){colours[i][j] = 0.0f;}}
+			colours[0][0] = 1.0f; colours[0][1] = 1.0f; colours[1][0] = 1.0f; colours[1][1] = 1.0f; colours[2][0] = 1.0f; colours[2][1] = 1.0f;
+			GenerateQuadratic(&geometry, &shader, vertices, colours);
+			RenderControlLines(&geometry, &shader);
+			for (int i = 0; i < 3; i++){for (int j = 0; j < 3; j++){colours[i][j] = 0.0f;}}
+			colours[0][1] = 1.0f; colours[1][2] = 1.0f; colours[2][1] = 1.0f;
+			GenerateQuadratic(&geometry, &shader, vertices, colours);
+			RenderControlPoints(&geometry, &shader);
+		}
+
+		for (int i = 0; i < 3; i++){for (int j = 0; j < 3; j++){colours[i][j] = 0.0f;}}
+		colours[0][0] = 1.0f; colours[1][0] = 1.0f; colours[2][0] = 1.0f;
+
+		GenerateQuadratic(&geometry, &shader, vertices, colours);
+		RenderBezier(&geometry, &shader);
+
+		vertices[0][0] = 0.0/scale; vertices[0][1] = -1.0/scale;
+		vertices[1][0] = -2.0/scale;  vertices[1][1] = -1.0/scale;
+		vertices[2][0] = -1.0/scale;  vertices[2][1] = 1.0/scale;
+
+		if(level == 2){
+			for (int i = 0; i < 3; i++){for (int j = 0; j < 3; j++){colours[i][j] = 0.0f;}}
+			colours[0][0] = 1.0f; colours[0][1] = 1.0f; colours[1][0] = 1.0f; colours[1][1] = 1.0f; colours[2][0] = 1.0f; colours[2][1] = 1.0f;
+			GenerateQuadratic(&geometry, &shader, vertices, colours);
+			RenderControlLines(&geometry, &shader);
+			for (int i = 0; i < 3; i++){for (int j = 0; j < 3; j++){colours[i][j] = 0.0f;}}
+			colours[0][1] = 1.0f; colours[1][2] = 1.0f; colours[2][1] = 1.0f;
+			GenerateQuadratic(&geometry, &shader, vertices, colours);
+			RenderControlPoints(&geometry, &shader);
+		}
+
+		for (int i = 0; i < 3; i++){for (int j = 0; j < 3; j++){colours[i][j] = 0.0f;}}
+		colours[0][0] = 1.0f; colours[1][0] = 1.0f; colours[2][0] = 1.0f;
+
+		GenerateQuadratic(&geometry, &shader, vertices, colours);
+		RenderBezier(&geometry, &shader);
+
+		vertices[0][0] = -1.0/scale; vertices[0][1] = 1.0/scale;
+		vertices[1][0] = 0.0/scale;  vertices[1][1] = 1.0/scale;
+		vertices[2][0] = 1.0/scale;  vertices[2][1] = 1.0/scale;
+
+		if(level == 2){
+			for (int i = 0; i < 3; i++){for (int j = 0; j < 3; j++){colours[i][j] = 0.0f;}}
+			colours[0][0] = 1.0f; colours[0][1] = 1.0f; colours[1][0] = 1.0f; colours[1][1] = 1.0f; colours[2][0] = 1.0f; colours[2][1] = 1.0f;
+			GenerateQuadratic(&geometry, &shader, vertices, colours);
+			RenderControlLines(&geometry, &shader);
+			for (int i = 0; i < 3; i++){for (int j = 0; j < 3; j++){colours[i][j] = 0.0f;}}
+			colours[0][1] = 1.0f; colours[1][2] = 1.0f; colours[2][1] = 1.0f;
+			GenerateQuadratic(&geometry, &shader, vertices, colours);
+			RenderControlPoints(&geometry, &shader);
+		}
+
+		for (int i = 0; i < 3; i++){for (int j = 0; j < 3; j++){colours[i][j] = 0.0f;}}
+		colours[0][0] = 1.0f; colours[1][0] = 1.0f; colours[2][0] = 1.0f;
+
+		GenerateQuadratic(&geometry, &shader, vertices, colours);
+		RenderBezier(&geometry, &shader);
+
+		vertices[0][0] = 1.2/scale; vertices[0][1] = 0.5/scale;
+		vertices[1][0] = 2.5/scale;  vertices[1][1] = 1.0/scale;
+		vertices[2][0] = 1.3/scale;  vertices[2][1] = -0.4/scale;
+
+		if(level == 2){
+			for (int i = 0; i < 3; i++){for (int j = 0; j < 3; j++){colours[i][j] = 0.0f;}}
+			colours[0][0] = 1.0f; colours[0][1] = 1.0f; colours[1][0] = 1.0f; colours[1][1] = 1.0f; colours[2][0] = 1.0f; colours[2][1] = 1.0f;
+			GenerateQuadratic(&geometry, &shader, vertices, colours);
+			RenderControlLines(&geometry, &shader);
+			for (int i = 0; i < 3; i++){for (int j = 0; j < 3; j++){colours[i][j] = 0.0f;}}
+			colours[0][1] = 1.0f; colours[1][2] = 1.0f; colours[2][1] = 1.0f;
+			GenerateQuadratic(&geometry, &shader, vertices, colours);
+			RenderControlPoints(&geometry, &shader);
+		}
+
+		for (int i = 0; i < 3; i++){for (int j = 0; j < 3; j++){colours[i][j] = 0.0f;}}
+		colours[0][0] = 1.0f; colours[1][0] = 1.0f; colours[2][0] = 1.0f;
+
+		GenerateQuadratic(&geometry, &shader, vertices, colours);
+		RenderBezier(&geometry, &shader);
 
 		glfwSwapBuffers(window);
 

@@ -15,20 +15,41 @@ void main()
     float u = gl_TessCoord.x;
 
     // order 1 bernstein basis
-    float b0 = (1.0-u)*(1.0-u);
-    float b1 = 2*u*(1.0-u);
-    float b2 = u*u;
+    //float b0 = (1.0-u)*(1.0-u);
+    //float b1 = 2*u*(1.0-u);
+    //float b2 = u*u;
+
+    // order 1 bernstein basis
+    float b0 = (1.0-u)*(1.0-u)*(1.0-u);
+    float b1 = 3*u*(1.0-u)*(1.0-u);
+    float b2 = 3*u*u*(1.0-u);
+    float b3 = u*u*u;
+
+    // Just like bezier sum
+    //gl_Position = b0 * gl_in[0].gl_Position +
+		              b1 * gl_in[1].gl_Position +
+                  b2 * gl_in[2].gl_Position;
+
+    // order 1 bernstein basis
+    //float b0 = (1.0-u)*(1.0-u)*(1.0-u);
+  //  float b1 = 3*u*(1.0-u)*(1.0-u);
+    //float b2 = 3*u*u*(1.0-u);
+    //float b3 = u*u*u;
 
     // Just like bezier sum
     gl_Position = b0 * gl_in[0].gl_Position +
 		              b1 * gl_in[1].gl_Position +
-                  b2 * gl_in[2].gl_Position;
+                  b2 * gl_in[2].gl_Position +
+                  b3 * gl_in[3].gl_Position;
 
-    //gl_Position = u * gl_in[0].gl_Position +
-                  (1.0-u) * gl_in[2].gl_Position;
+    // Determine colours for new points
+  /*  Colour 	= b0 * teColour[0] +
+	     	      b1 * teColour[1] +
+              b2 * teColour[2];*/
 
     // Determine colours for new points
     Colour 	= b0 * teColour[0] +
-	     	      b1 * teColour[1] +
-              b2 * teColour[2];
+              b1 * teColour[1] +
+              b2 * teColour[2] +
+              b3 * teColour[3];
 }

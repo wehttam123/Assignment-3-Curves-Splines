@@ -19,7 +19,7 @@
 // per patch out, use  "patch out <type> <name>"
 
 #version 410
-layout(vertices = 2) out; //How long gl_out[] should be
+layout(vertices = 3) out; //How long gl_out[] should be
 
 in vec3 tcColour[];
 out vec3 teColour[];
@@ -30,10 +30,9 @@ void main()
     // gl_InvocationID tells you what input vertex you are working on
     if (gl_InvocationID == 0) {   // only needs to be set once
         gl_TessLevelOuter[0] = 1; // only need to draw one line
-        gl_TessLevelOuter[1] = 1; // how much to subdivide each line
+        gl_TessLevelOuter[1] = 1000; // how much to subdivide each line
     }
 
     gl_out[gl_InvocationID].gl_Position = gl_in[gl_InvocationID].gl_Position;	// pass control points to TES
     teColour[gl_InvocationID] = tcColour[gl_InvocationID]; 						// pass colours to TES
 }
-

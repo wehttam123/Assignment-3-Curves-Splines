@@ -168,15 +168,17 @@ bool InitializeGeometry(MyGeometry *geometry)
 {
 	// three vertex positions and assocated colours of a triangle
 	const GLfloat vertices[][2] = {
-		{ -.6f, -.4f },
-		{ .6f, .4f }
+		{ -.4f, .4f },
+		{ .8f, -.4f },
+		{ .0f, -.4f }
 	};
 
 	const GLfloat colours[][3] = {
 		{ 1.0f, 0.0f, 0.0f },
-		{ 0.0f, 0.0f, 1.0f }
+		{ 0.0f, 0.0f, 1.0f },
+		{ 0.0f, 1.0f, 0.0f }
 	};
-	geometry->elementCount = 2;
+	geometry->elementCount = 3;
 
 	// these vertex attribute indices correspond to those specified for the
 	// input variables in the vertex shader
@@ -283,7 +285,7 @@ int main(int argc, char *argv[])
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	window = glfwCreateWindow(512, 512, "CPSC 453 OpenGL Boilerplate", 0, 0);
+	window = glfwCreateWindow(512, 512, "CPSC 453 Assignment #3", 0, 0);
 	if (!window) {
 		cout << "Program failed to create GLFW window, TERMINATING" << endl;
 		glfwTerminate();
@@ -309,7 +311,7 @@ int main(int argc, char *argv[])
 	if (!InitializeGeometry(&geometry))
 		cout << "Program failed to intialize geometry!" << endl;
 
-	glPatchParameteri(GL_PATCH_VERTICES, 2);
+	glPatchParameteri(GL_PATCH_VERTICES, 3);
 
 	// run an event-triggered main loop
 	while (!glfwWindowShouldClose(window))

@@ -37,7 +37,7 @@ bool CheckGLErrors();
 string LoadSource(const string &filename);
 GLuint CompileShader(GLenum shaderType, const string &source);
 GLuint LinkProgram(GLuint vertexShader, GLuint TCSshader, GLuint TESshader, GLuint fragmentShader);
-
+GLuint LinkProgram(GLuint vertexShader, GLuint fragmentShader);
 // --------------------------------------------------------------------------
 // Functions to set up OpenGL shader programs for rendering
 
@@ -49,9 +49,10 @@ struct MyShader
 	GLuint  TES;
 	GLuint  fragment;
 	GLuint  program;
+	GLuint  programNoTess;
 
 	// initialize shader and program names to zero (OpenGL reserved value)
-	MyShader() : vertex(0), fragment(0), program(0)
+	MyShader() : vertex(0), fragment(0),  program(0), programNoTess(0)
 	{}
 };
 
@@ -73,7 +74,7 @@ bool InitializeShaders(MyShader *shader)
 
 	// link shader program
 	shader->program = LinkProgram(shader->vertex, shader->TCS, shader->TES, shader->fragment);
-
+	shader->programNoTess = LinkProgram(shader->vertex, shader->fragment);
 	// check for OpenGL errors and return false if error occurred
 	return !CheckGLErrors();
 }
@@ -84,6 +85,7 @@ void DestroyShaders(MyShader *shader)
 	// unbind any shader programs and destroy shader objects
 	glUseProgram(0);
 	glDeleteProgram(shader->program);
+	glDeleteProgram(shader->programNoTess);
 	glDeleteShader(shader->vertex);
 	glDeleteShader(shader->fragment);
 	glDeleteShader(shader->TCS);
@@ -241,6 +243,9 @@ void RenderScene(MyGeometry *geometry, MyShader *shader)
 	glUseProgram(shader->program);
 	glBindVertexArray(geometry->vertexArray);
 	glDrawArrays(GL_PATCHES, 0, geometry->elementCount);
+	glUseProgram(shader->programNoTess);
+	glDrawArrays(GL_LINE_STRIP, 0, geometry->elementCount);
+	glDrawArrays(GL_POINTS, 0, geometry->elementCount);
 
 	// reset state to default (no shader or geometry bound)
 	glBindVertexArray(0);
@@ -312,6 +317,7 @@ int main(int argc, char *argv[])
 		cout << "Program failed to intialize geometry!" << endl;
 
 	glPatchParameteri(GL_PATCH_VERTICES, 3);
+	glPointSize(5);
 
 	// run an event-triggered main loop
 	while (!glfwWindowShouldClose(window))
@@ -438,6 +444,35 @@ GLuint LinkProgram(GLuint vertexShader, GLuint TCSshader, GLuint TESshader, GLui
 	if (vertexShader)   glAttachShader(programObject, vertexShader);
 	if (TCSshader) glAttachShader(programObject, TCSshader);
 	if (TESshader) glAttachShader(programObject, TESshader);
+	if (fragmentShader) glAttachShader(programObject, fragmentShader);
+
+	// try linking the program with given attachments
+	glLinkProgram(programObject);
+
+	// retrieve link status
+	GLint status;
+	glGetProgramiv(programObject, GL_LINK_STATUS, &status);
+	if (status == GL_FALSE)
+	{
+		GLint length;
+		glGetProgramiv(programObject, GL_INFO_LOG_LENGTH, &length);
+		string info(length, ' ');
+		glGetProgramInfoLog(programObject, info.length(), &length, &info[0]);
+		cout << "ERROR linking shader program:" << endl;
+		cout << info << endl;
+	}
+
+	return programObject;
+}
+
+// creates and returns a program object linked from vertex and fragment shaders
+GLuint LinkProgram(GLuint vertexShader, GLuint fragmentShader)
+{
+	// allocate program object name
+	GLuint programObject = glCreateProgram();
+
+	// attach provided shader objects to this program
+	if (vertexShader)   glAttachShader(programObject, vertexShader);
 	if (fragmentShader) glAttachShader(programObject, fragmentShader);
 
 	// try linking the program with given attachments

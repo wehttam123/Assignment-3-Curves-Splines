@@ -27,6 +27,8 @@
 #include <GLFW/glfw3.h>
 
 static int level = 1; // Level of program
+static float rate = 0.01; // rate of movement
+
 
 /*
 #define STB_IMAGE_IMPLEMENTATION
@@ -549,7 +551,7 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
       switch (key)
       {
         case GLFW_KEY_RIGHT :
-        if (level < 6)
+        if (level < 8)
           level++;
 				else
 					level = 1;
@@ -558,7 +560,13 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
         if (level > 1)
           level--;
 				else
-					level = 6;
+					level = 8;
+        break;
+				case GLFW_KEY_UP :
+        	rate = rate + 0.01;
+        break;
+				case GLFW_KEY_DOWN :
+        	rate = rate - 0.01;
         break;
       }
     }
@@ -616,6 +624,10 @@ int main(int argc, char *argv[])
 	GLfloat vertices[4][2];
 	GLfloat colours[4][3];
 	float scale = 10.0f;
+
+	float move = 1.0;
+	bool end = false;
+	bool g = false;
 
 	//Load a font file and extract a glyph
 	GlyphExtractor extractor;
@@ -846,8 +858,7 @@ int main(int argc, char *argv[])
 
 			break;
 			case 5 :
-			case 6 :
-
+{
 			for (int name = 0; name < 3; name++) {
 				float translation;
 				if(name == 0){
@@ -945,7 +956,7 @@ int main(int argc, char *argv[])
 						colours[0][0] = 1.0f; colours[1][0] = 1.0f; colours[2][0] = 1.0f; colours[3][0] = 1.0f;
 
 						GenerateCubic(&geometry, &shader, vertices, colours);
-						//RenderBezier(&geometry, &shader);
+						RenderBezier(&geometry, &shader);
 						break;
 					}
 				}
@@ -953,7 +964,447 @@ int main(int argc, char *argv[])
 			advance = advance + glyph.advance;
 		}
 	}
+}
 			break;
+			case 6:
+			if (end){
+				move = 1.0;
+				end = false;
+				g = false;
+			}
+			else{
+					move = move - rate;
+				}
+{
+						extractor.LoadFontFile("fonts/AlexBrush-Regular.ttf");
+						float advance = -1;
+						float translation = 0.0;
+
+						for (int letter = 0; letter < 36; letter++) {
+							MyGlyph glyph;
+						switch (letter) {
+							case 30 :
+							glyph = extractor.ExtractGlyph('a'); break;
+							case 9 :
+							glyph = extractor.ExtractGlyph('b'); break;
+							case 7 :
+							glyph = extractor.ExtractGlyph('c'); break;
+							case 33 :
+							glyph = extractor.ExtractGlyph('d'); break;
+							case 3 :
+							case 24 :
+							case 28 :
+							glyph = extractor.ExtractGlyph('e'); break;
+							case 14 :
+							glyph = extractor.ExtractGlyph('f'); break;
+							case 35 :
+							glyph = extractor.ExtractGlyph('g'); g = true; break;
+							case 2 :
+							case 27 :
+							glyph = extractor.ExtractGlyph('h'); break;
+							case 6 :
+							glyph = extractor.ExtractGlyph('i'); break;
+							case 17 :
+							glyph = extractor.ExtractGlyph('j'); break;
+							case 8 :
+							glyph = extractor.ExtractGlyph('k'); break;
+							case 29 :
+							glyph = extractor.ExtractGlyph('l'); break;
+							case 19 :
+							glyph = extractor.ExtractGlyph('m'); break;
+							case 13 :
+							glyph = extractor.ExtractGlyph('n'); break;
+							case 11 :
+							case 15 :
+							case 22 :
+							case 34 :
+							glyph = extractor.ExtractGlyph('o'); break;
+							case 20 :
+							glyph = extractor.ExtractGlyph('p'); break;
+							case 4 :
+							glyph = extractor.ExtractGlyph('q'); break;
+							case 10 :
+							case 25 :
+							glyph = extractor.ExtractGlyph('r'); break;
+							case 21 :
+							glyph = extractor.ExtractGlyph('s'); break;
+							case 1 :
+							case 26 :
+							glyph = extractor.ExtractGlyph('t'); break;
+							case 5 :
+							case 18 :
+							glyph = extractor.ExtractGlyph('u'); break;
+							case 23 :
+							glyph = extractor.ExtractGlyph('v'); break;
+							case 12 :
+							glyph = extractor.ExtractGlyph('w'); break;
+							case 16 :
+							glyph = extractor.ExtractGlyph('x'); break;
+							case 32 :
+							glyph = extractor.ExtractGlyph('y'); break;
+							case 31 :
+							glyph = extractor.ExtractGlyph('z'); break;
+						}
+
+						for (uint i = 0; i < glyph.contours.size(); i++) {
+							for (uint j = 0; j < glyph.contours[i].size(); j++) {
+								//cout << j << " " << i << " " << glyph.contours[i][j].degree << " " << glyph.contours[i][j].x[0] << " " << glyph.contours[i][j].x[1] << " " << glyph.contours[i][j].y[0] << " " << glyph.contours[i][j].y[1] << endl;
+
+								uint degree = glyph.contours[i][j].degree;
+								switch (degree) {
+									case 0:
+									vertices[0][0] = (float)((glyph.contours[i][j].x[0]+advance)/scale)+move;  vertices[0][1] = (float)(glyph.contours[i][j].y[0]+(translation*scale))/scale;
+									for (int i = 0; i < 1; i++){for (int j = 0; j < 1; j++){colours[i][j] = 0.0f;}}
+									colours[0][0] = 1.0f;
+									GeneratePoint(&geometry, &shader, vertices, colours);
+									RenderControlPoints(&geometry, &shader);
+
+									break;
+									case 1:
+									vertices[0][0] = (float)((glyph.contours[i][j].x[0]+advance)/scale)+move;  vertices[0][1] = (float)(glyph.contours[i][j].y[0]+(translation*scale))/scale;
+									vertices[1][0] = (float)((glyph.contours[i][j].x[1]+advance)/scale)+move;  vertices[1][1] = (float)(glyph.contours[i][j].y[1]+(translation*scale))/scale;
+
+									for (int i = 0; i < 2; i++){for (int j = 0; j < 2; j++){colours[i][j] = 0.0f;}}
+									colours[0][0] = 1.0f; colours[1][0] = 1.0f;
+
+									Generateline(&geometry, &shader, vertices, colours);
+									RenderControlLines(&geometry, &shader);
+									break;
+									case 2:
+									glUseProgram(shader.program);
+									glUniform2f(loc1, 0.0, 0.0);
+									glPatchParameteri(GL_PATCH_VERTICES, 3);
+
+									vertices[0][0] = (float)((glyph.contours[i][j].x[0]+advance)/scale)+move;  vertices[0][1] = (float)(glyph.contours[i][j].y[0]+(translation*scale))/scale;
+									vertices[1][0] = (float)((glyph.contours[i][j].x[1]+advance)/scale)+move;  vertices[1][1] = (float)(glyph.contours[i][j].y[1]+(translation*scale))/scale;
+									vertices[2][0] = (float)((glyph.contours[i][j].x[2]+advance)/scale)+move;  vertices[2][1] = (float)(glyph.contours[i][j].y[2]+(translation*scale))/scale;
+
+									for (int i = 0; i < 3; i++){for (int j = 0; j < 3; j++){colours[i][j] = 0.0f;}}
+									colours[0][0] = 1.0f; colours[1][0] = 1.0f; colours[2][0] = 1.0f;
+
+									GenerateQuadratic(&geometry, &shader, vertices, colours);
+									RenderBezier(&geometry, &shader);
+
+									if(g)
+										if(vertices[0][0] < -3.0)
+											end = true;
+									break;
+									case 3:
+									glUseProgram(shader.program);
+									glUniform2f(loc1, 1.0, 0.0);
+									glPatchParameteri(GL_PATCH_VERTICES, 4);
+
+									vertices[0][0] = (float)((glyph.contours[i][j].x[0]+advance)/scale)+move;  vertices[0][1] = (float)(glyph.contours[i][j].y[0]+(translation*scale))/scale;
+									vertices[1][0] = (float)((glyph.contours[i][j].x[1]+advance)/scale)+move;  vertices[1][1] = (float)(glyph.contours[i][j].y[1]+(translation*scale))/scale;
+									vertices[2][0] = (float)((glyph.contours[i][j].x[2]+advance)/scale)+move;  vertices[2][1] = (float)(glyph.contours[i][j].y[2]+(translation*scale))/scale;
+									vertices[3][0] = (float)((glyph.contours[i][j].x[3]+advance)/scale)+move;  vertices[3][1] = (float)(glyph.contours[i][j].y[3]+(translation*scale))/scale;
+
+									for (int i = 0; i < 4; i++){for (int j = 0; j < 4; j++){colours[i][j] = 0.0f;}}
+									colours[0][0] = 1.0f; colours[1][0] = 1.0f; colours[2][0] = 1.0f; colours[3][0] = 1.0f;
+
+									GenerateCubic(&geometry, &shader, vertices, colours);
+									RenderBezier(&geometry, &shader);
+									break;
+								}
+							}
+						}
+						advance = advance + glyph.advance;
+					}
+				}
+			break;
+			case 7:
+			if (end){
+				move = 1.0;
+				end = false;
+				g = false;
+			}
+			else{
+					move = move - rate;
+				}
+{
+						extractor.LoadFontFile("fonts/Inconsolata-Regular.ttf");
+						float advance = -1;
+						float translation = 0.0;
+
+						for (int letter = 0; letter < 36; letter++) {
+							MyGlyph glyph;
+						switch (letter) {
+							case 30 :
+							glyph = extractor.ExtractGlyph('a'); break;
+							case 9 :
+							glyph = extractor.ExtractGlyph('b'); break;
+							case 7 :
+							glyph = extractor.ExtractGlyph('c'); break;
+							case 33 :
+							glyph = extractor.ExtractGlyph('d'); break;
+							case 3 :
+							case 24 :
+							case 28 :
+							glyph = extractor.ExtractGlyph('e'); break;
+							case 14 :
+							glyph = extractor.ExtractGlyph('f'); break;
+							case 35 :
+							glyph = extractor.ExtractGlyph('g'); g = true; break;
+							case 2 :
+							case 27 :
+							glyph = extractor.ExtractGlyph('h'); break;
+							case 6 :
+							glyph = extractor.ExtractGlyph('i'); break;
+							case 17 :
+							glyph = extractor.ExtractGlyph('j'); break;
+							case 8 :
+							glyph = extractor.ExtractGlyph('k'); break;
+							case 29 :
+							glyph = extractor.ExtractGlyph('l'); break;
+							case 19 :
+							glyph = extractor.ExtractGlyph('m'); break;
+							case 13 :
+							glyph = extractor.ExtractGlyph('n'); break;
+							case 11 :
+							case 15 :
+							case 22 :
+							case 34 :
+							glyph = extractor.ExtractGlyph('o'); break;
+							case 20 :
+							glyph = extractor.ExtractGlyph('p'); break;
+							case 4 :
+							glyph = extractor.ExtractGlyph('q'); break;
+							case 10 :
+							case 25 :
+							glyph = extractor.ExtractGlyph('r'); break;
+							case 21 :
+							glyph = extractor.ExtractGlyph('s'); break;
+							case 1 :
+							case 26 :
+							glyph = extractor.ExtractGlyph('t'); break;
+							case 5 :
+							case 18 :
+							glyph = extractor.ExtractGlyph('u'); break;
+							case 23 :
+							glyph = extractor.ExtractGlyph('v'); break;
+							case 12 :
+							glyph = extractor.ExtractGlyph('w'); break;
+							case 16 :
+							glyph = extractor.ExtractGlyph('x'); break;
+							case 32 :
+							glyph = extractor.ExtractGlyph('y'); break;
+							case 31 :
+							glyph = extractor.ExtractGlyph('z'); break;
+						}
+
+						for (uint i = 0; i < glyph.contours.size(); i++) {
+							for (uint j = 0; j < glyph.contours[i].size(); j++) {
+								//cout << j << " " << i << " " << glyph.contours[i][j].degree << " " << glyph.contours[i][j].x[0] << " " << glyph.contours[i][j].x[1] << " " << glyph.contours[i][j].y[0] << " " << glyph.contours[i][j].y[1] << endl;
+
+								uint degree = glyph.contours[i][j].degree;
+								switch (degree) {
+									case 0:
+									vertices[0][0] = (float)((glyph.contours[i][j].x[0]+advance)/scale)+move;  vertices[0][1] = (float)(glyph.contours[i][j].y[0]+(translation*scale))/scale;
+									for (int i = 0; i < 1; i++){for (int j = 0; j < 1; j++){colours[i][j] = 0.0f;}}
+									colours[0][0] = 1.0f;
+									GeneratePoint(&geometry, &shader, vertices, colours);
+									RenderControlPoints(&geometry, &shader);
+
+									break;
+									case 1:
+									vertices[0][0] = (float)((glyph.contours[i][j].x[0]+advance)/scale)+move;  vertices[0][1] = (float)(glyph.contours[i][j].y[0]+(translation*scale))/scale;
+									vertices[1][0] = (float)((glyph.contours[i][j].x[1]+advance)/scale)+move;  vertices[1][1] = (float)(glyph.contours[i][j].y[1]+(translation*scale))/scale;
+
+									for (int i = 0; i < 2; i++){for (int j = 0; j < 2; j++){colours[i][j] = 0.0f;}}
+									colours[0][0] = 1.0f; colours[1][0] = 1.0f;
+
+									Generateline(&geometry, &shader, vertices, colours);
+									RenderControlLines(&geometry, &shader);
+									break;
+									case 2:
+									glUseProgram(shader.program);
+									glUniform2f(loc1, 0.0, 0.0);
+									glPatchParameteri(GL_PATCH_VERTICES, 3);
+
+									vertices[0][0] = (float)((glyph.contours[i][j].x[0]+advance)/scale)+move;  vertices[0][1] = (float)(glyph.contours[i][j].y[0]+(translation*scale))/scale;
+									vertices[1][0] = (float)((glyph.contours[i][j].x[1]+advance)/scale)+move;  vertices[1][1] = (float)(glyph.contours[i][j].y[1]+(translation*scale))/scale;
+									vertices[2][0] = (float)((glyph.contours[i][j].x[2]+advance)/scale)+move;  vertices[2][1] = (float)(glyph.contours[i][j].y[2]+(translation*scale))/scale;
+
+									for (int i = 0; i < 3; i++){for (int j = 0; j < 3; j++){colours[i][j] = 0.0f;}}
+									colours[0][0] = 1.0f; colours[1][0] = 1.0f; colours[2][0] = 1.0f;
+
+									GenerateQuadratic(&geometry, &shader, vertices, colours);
+									RenderBezier(&geometry, &shader);
+
+									if(g)
+										if(vertices[0][0] < -3.0)
+											end = true;
+									break;
+									case 3:
+									glUseProgram(shader.program);
+									glUniform2f(loc1, 1.0, 0.0);
+									glPatchParameteri(GL_PATCH_VERTICES, 4);
+
+									vertices[0][0] = (float)((glyph.contours[i][j].x[0]+advance)/scale)+move;  vertices[0][1] = (float)(glyph.contours[i][j].y[0]+(translation*scale))/scale;
+									vertices[1][0] = (float)((glyph.contours[i][j].x[1]+advance)/scale)+move;  vertices[1][1] = (float)(glyph.contours[i][j].y[1]+(translation*scale))/scale;
+									vertices[2][0] = (float)((glyph.contours[i][j].x[2]+advance)/scale)+move;  vertices[2][1] = (float)(glyph.contours[i][j].y[2]+(translation*scale))/scale;
+									vertices[3][0] = (float)((glyph.contours[i][j].x[3]+advance)/scale)+move;  vertices[3][1] = (float)(glyph.contours[i][j].y[3]+(translation*scale))/scale;
+
+									for (int i = 0; i < 4; i++){for (int j = 0; j < 4; j++){colours[i][j] = 0.0f;}}
+									colours[0][0] = 1.0f; colours[1][0] = 1.0f; colours[2][0] = 1.0f; colours[3][0] = 1.0f;
+
+									GenerateCubic(&geometry, &shader, vertices, colours);
+									RenderBezier(&geometry, &shader);
+									break;
+								}
+							}
+						}
+						advance = advance + glyph.advance;
+					}
+				}
+			break;
+			case 8:
+			if (end){
+				move = 1.0;
+				end = false;
+				g = false;
+			}
+			else{
+					move = move - rate;
+				}
+{
+						extractor.LoadFontFile("fonts/FugazOne-Regular.ttf");
+						float advance = -1;
+						float translation = 0.0;
+
+						for (int letter = 0; letter < 36; letter++) {
+							MyGlyph glyph;
+						switch (letter) {
+							case 30 :
+							glyph = extractor.ExtractGlyph('a'); break;
+							case 9 :
+							glyph = extractor.ExtractGlyph('b'); break;
+							case 7 :
+							glyph = extractor.ExtractGlyph('c'); break;
+							case 33 :
+							glyph = extractor.ExtractGlyph('d'); break;
+							case 3 :
+							case 24 :
+							case 28 :
+							glyph = extractor.ExtractGlyph('e'); break;
+							case 14 :
+							glyph = extractor.ExtractGlyph('f'); break;
+							case 35 :
+							glyph = extractor.ExtractGlyph('g'); g = true; break;
+							case 2 :
+							case 27 :
+							glyph = extractor.ExtractGlyph('h'); break;
+							case 6 :
+							glyph = extractor.ExtractGlyph('i'); break;
+							case 17 :
+							glyph = extractor.ExtractGlyph('j'); break;
+							case 8 :
+							glyph = extractor.ExtractGlyph('k'); break;
+							case 29 :
+							glyph = extractor.ExtractGlyph('l'); break;
+							case 19 :
+							glyph = extractor.ExtractGlyph('m'); break;
+							case 13 :
+							glyph = extractor.ExtractGlyph('n'); break;
+							case 11 :
+							case 15 :
+							case 22 :
+							case 34 :
+							glyph = extractor.ExtractGlyph('o'); break;
+							case 20 :
+							glyph = extractor.ExtractGlyph('p'); break;
+							case 4 :
+							glyph = extractor.ExtractGlyph('q'); break;
+							case 10 :
+							case 25 :
+							glyph = extractor.ExtractGlyph('r'); break;
+							case 21 :
+							glyph = extractor.ExtractGlyph('s'); break;
+							case 1 :
+							case 26 :
+							glyph = extractor.ExtractGlyph('t'); break;
+							case 5 :
+							case 18 :
+							glyph = extractor.ExtractGlyph('u'); break;
+							case 23 :
+							glyph = extractor.ExtractGlyph('v'); break;
+							case 12 :
+							glyph = extractor.ExtractGlyph('w'); break;
+							case 16 :
+							glyph = extractor.ExtractGlyph('x'); break;
+							case 32 :
+							glyph = extractor.ExtractGlyph('y'); break;
+							case 31 :
+							glyph = extractor.ExtractGlyph('z'); break;
+						}
+
+						for (uint i = 0; i < glyph.contours.size(); i++) {
+							for (uint j = 0; j < glyph.contours[i].size(); j++) {
+								//cout << j << " " << i << " " << glyph.contours[i][j].degree << " " << glyph.contours[i][j].x[0] << " " << glyph.contours[i][j].x[1] << " " << glyph.contours[i][j].y[0] << " " << glyph.contours[i][j].y[1] << endl;
+
+								uint degree = glyph.contours[i][j].degree;
+								switch (degree) {
+									case 0:
+									vertices[0][0] = (float)((glyph.contours[i][j].x[0]+advance)/scale)+move;  vertices[0][1] = (float)(glyph.contours[i][j].y[0]+(translation*scale))/scale;
+									for (int i = 0; i < 1; i++){for (int j = 0; j < 1; j++){colours[i][j] = 0.0f;}}
+									colours[0][0] = 1.0f;
+									GeneratePoint(&geometry, &shader, vertices, colours);
+									RenderControlPoints(&geometry, &shader);
+
+									break;
+									case 1:
+									vertices[0][0] = (float)((glyph.contours[i][j].x[0]+advance)/scale)+move;  vertices[0][1] = (float)(glyph.contours[i][j].y[0]+(translation*scale))/scale;
+									vertices[1][0] = (float)((glyph.contours[i][j].x[1]+advance)/scale)+move;  vertices[1][1] = (float)(glyph.contours[i][j].y[1]+(translation*scale))/scale;
+
+									for (int i = 0; i < 2; i++){for (int j = 0; j < 2; j++){colours[i][j] = 0.0f;}}
+									colours[0][0] = 1.0f; colours[1][0] = 1.0f;
+
+									Generateline(&geometry, &shader, vertices, colours);
+									RenderControlLines(&geometry, &shader);
+									break;
+									case 2:
+									glUseProgram(shader.program);
+									glUniform2f(loc1, 0.0, 0.0);
+									glPatchParameteri(GL_PATCH_VERTICES, 3);
+
+									vertices[0][0] = (float)((glyph.contours[i][j].x[0]+advance)/scale)+move;  vertices[0][1] = (float)(glyph.contours[i][j].y[0]+(translation*scale))/scale;
+									vertices[1][0] = (float)((glyph.contours[i][j].x[1]+advance)/scale)+move;  vertices[1][1] = (float)(glyph.contours[i][j].y[1]+(translation*scale))/scale;
+									vertices[2][0] = (float)((glyph.contours[i][j].x[2]+advance)/scale)+move;  vertices[2][1] = (float)(glyph.contours[i][j].y[2]+(translation*scale))/scale;
+
+									for (int i = 0; i < 3; i++){for (int j = 0; j < 3; j++){colours[i][j] = 0.0f;}}
+									colours[0][0] = 1.0f; colours[1][0] = 1.0f; colours[2][0] = 1.0f;
+
+									GenerateQuadratic(&geometry, &shader, vertices, colours);
+									RenderBezier(&geometry, &shader);
+
+									if(g)
+										if(vertices[0][0] < -3.0)
+											end = true;
+									break;
+									case 3:
+									glUseProgram(shader.program);
+									glUniform2f(loc1, 1.0, 0.0);
+									glPatchParameteri(GL_PATCH_VERTICES, 4);
+
+									vertices[0][0] = (float)((glyph.contours[i][j].x[0]+advance)/scale)+move;  vertices[0][1] = (float)(glyph.contours[i][j].y[0]+(translation*scale))/scale;
+									vertices[1][0] = (float)((glyph.contours[i][j].x[1]+advance)/scale)+move;  vertices[1][1] = (float)(glyph.contours[i][j].y[1]+(translation*scale))/scale;
+									vertices[2][0] = (float)((glyph.contours[i][j].x[2]+advance)/scale)+move;  vertices[2][1] = (float)(glyph.contours[i][j].y[2]+(translation*scale))/scale;
+									vertices[3][0] = (float)((glyph.contours[i][j].x[3]+advance)/scale)+move;  vertices[3][1] = (float)(glyph.contours[i][j].y[3]+(translation*scale))/scale;
+
+									for (int i = 0; i < 4; i++){for (int j = 0; j < 4; j++){colours[i][j] = 0.0f;}}
+									colours[0][0] = 1.0f; colours[1][0] = 1.0f; colours[2][0] = 1.0f; colours[3][0] = 1.0f;
+
+									GenerateCubic(&geometry, &shader, vertices, colours);
+									RenderBezier(&geometry, &shader);
+									break;
+								}
+							}
+						}
+						advance = advance + glyph.advance;
+					}
+				}
+			break;
+
 		}
 
 

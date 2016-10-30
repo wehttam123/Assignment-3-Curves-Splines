@@ -619,7 +619,6 @@ int main(int argc, char *argv[])
 
 	//Load a font file and extract a glyph
 	GlyphExtractor extractor;
-	extractor.LoadFontFile("fonts/AlexBrush-Regular.ttf");
 
 	// run an event-triggered main loop
 	while (!glfwWindowShouldClose(window))
@@ -848,7 +847,51 @@ int main(int argc, char *argv[])
 			break;
 			case 5 :
 			case 6 :
-			MyGlyph glyph = extractor.ExtractGlyph('a');
+
+			for (int name = 0; name < 3; name++) {
+				float translation;
+				if(name == 0){
+						extractor.LoadFontFile("fonts/Lora-Regular.ttf");
+						translation = 0.75f;}
+					else if(name == 1){
+						extractor.LoadFontFile("fonts/SourceSansPro-Regular.ttf");
+						translation = 0.0f;}
+					else {
+						extractor.LoadFontFile("fonts/Dattermatter Personal Use.ttf");
+						translation = -0.75f;}
+				float advance = -1;
+
+			for (int letter = 0; letter < 13; letter++) {
+				MyGlyph glyph;
+			switch (letter) {
+				case 0 :
+				glyph = extractor.ExtractGlyph('M'); break;
+				case 1 :
+				glyph = extractor.ExtractGlyph('a'); break;
+				case 2 :
+				glyph = extractor.ExtractGlyph('t'); break;
+				case 3 :
+				glyph = extractor.ExtractGlyph('t'); break;
+				case 4 :
+				glyph = extractor.ExtractGlyph('h'); break;
+				case 5 :
+				glyph = extractor.ExtractGlyph('e'); break;
+				case 6 :
+				glyph = extractor.ExtractGlyph('w'); break;
+				case 7 :
+				glyph = extractor.ExtractGlyph('H'); break;
+				case 8 :
+				glyph = extractor.ExtractGlyph('y'); break;
+				case 9 :
+				glyph = extractor.ExtractGlyph('l'); break;
+				case 10 :
+				glyph = extractor.ExtractGlyph('t'); break;
+				case 11 :
+				glyph = extractor.ExtractGlyph('o'); break;
+				case 12 :
+				glyph = extractor.ExtractGlyph('n'); break;
+			}
+
 			for (uint i = 0; i < glyph.contours.size(); i++) {
 				for (uint j = 0; j < glyph.contours[i].size(); j++) {
 					//cout << j << " " << i << " " << glyph.contours[i][j].degree << " " << glyph.contours[i][j].x[0] << " " << glyph.contours[i][j].x[1] << " " << glyph.contours[i][j].y[0] << " " << glyph.contours[i][j].y[1] << endl;
@@ -856,7 +899,7 @@ int main(int argc, char *argv[])
 					uint degree = glyph.contours[i][j].degree;
 					switch (degree) {
 						case 0:
-						vertices[0][0] = (float)glyph.contours[i][j].x[0];  vertices[0][1] = (float)glyph.contours[i][j].y[0];
+						vertices[0][0] = (float)(glyph.contours[i][j].x[0]+advance)/scale;  vertices[0][1] = (float)(glyph.contours[i][j].y[0]+(translation*scale))/scale;
 						for (int i = 0; i < 1; i++){for (int j = 0; j < 1; j++){colours[i][j] = 0.0f;}}
 						colours[0][0] = 1.0f;
 						GeneratePoint(&geometry, &shader, vertices, colours);
@@ -864,8 +907,8 @@ int main(int argc, char *argv[])
 
 						break;
 						case 1:
-						vertices[0][0] = (float)glyph.contours[i][j].x[0];  vertices[0][1] = (float)glyph.contours[i][j].y[0];
-						vertices[1][0] = (float)glyph.contours[i][j].x[1];  vertices[1][1] = (float)glyph.contours[i][j].y[1];
+						vertices[0][0] = (float)(glyph.contours[i][j].x[0]+advance)/scale;  vertices[0][1] = (float)(glyph.contours[i][j].y[0]+(translation*scale))/scale;
+						vertices[1][0] = (float)(glyph.contours[i][j].x[1]+advance)/scale;  vertices[1][1] = (float)(glyph.contours[i][j].y[1]+(translation*scale))/scale;
 
 						for (int i = 0; i < 2; i++){for (int j = 0; j < 2; j++){colours[i][j] = 0.0f;}}
 						colours[0][0] = 1.0f; colours[1][0] = 1.0f;
@@ -878,9 +921,9 @@ int main(int argc, char *argv[])
 						glUniform2f(loc1, 0.0, 0.0);
 						glPatchParameteri(GL_PATCH_VERTICES, 3);
 
-						vertices[0][0] = (float)glyph.contours[i][j].x[0];  vertices[0][1] = (float)glyph.contours[i][j].y[0];
-						vertices[1][0] = (float)glyph.contours[i][j].x[1];  vertices[1][1] = (float)glyph.contours[i][j].y[1];
-						vertices[2][0] = (float)glyph.contours[i][j].x[2];  vertices[2][1] = (float)glyph.contours[i][j].y[2];
+						vertices[0][0] = (float)(glyph.contours[i][j].x[0]+advance)/scale;  vertices[0][1] = (float)(glyph.contours[i][j].y[0]+(translation*scale))/scale;
+						vertices[1][0] = (float)(glyph.contours[i][j].x[1]+advance)/scale;  vertices[1][1] = (float)(glyph.contours[i][j].y[1]+(translation*scale))/scale;
+						vertices[2][0] = (float)(glyph.contours[i][j].x[2]+advance)/scale;  vertices[2][1] = (float)(glyph.contours[i][j].y[2]+(translation*scale))/scale;
 
 						for (int i = 0; i < 3; i++){for (int j = 0; j < 3; j++){colours[i][j] = 0.0f;}}
 						colours[0][0] = 1.0f; colours[1][0] = 1.0f; colours[2][0] = 1.0f;
@@ -893,21 +936,23 @@ int main(int argc, char *argv[])
 						glUniform2f(loc1, 1.0, 0.0);
 						glPatchParameteri(GL_PATCH_VERTICES, 4);
 
-						vertices[0][0] = (float)glyph.contours[i][j].x[0];  vertices[0][1] = (float)glyph.contours[i][j].y[0];
-						vertices[1][0] = (float)glyph.contours[i][j].x[1];  vertices[1][1] = (float)glyph.contours[i][j].y[1];
-						vertices[2][0] = (float)glyph.contours[i][j].x[2];  vertices[2][1] = (float)glyph.contours[i][j].y[2];
-						vertices[3][0] = (float)glyph.contours[i][j].x[3];  vertices[3][1] = (float)glyph.contours[i][j].y[3];
+						vertices[0][0] = (float)(glyph.contours[i][j].x[0]+advance)/scale;  vertices[0][1] = (float)(glyph.contours[i][j].y[0]+(translation*scale))/scale;
+						vertices[1][0] = (float)(glyph.contours[i][j].x[1]+advance)/scale;  vertices[1][1] = (float)(glyph.contours[i][j].y[1]+(translation*scale))/scale;
+						vertices[2][0] = (float)(glyph.contours[i][j].x[2]+advance)/scale;  vertices[2][1] = (float)(glyph.contours[i][j].y[2]+(translation*scale))/scale;
+						vertices[3][0] = (float)(glyph.contours[i][j].x[3]+advance)/scale;  vertices[3][1] = (float)(glyph.contours[i][j].y[3]+(translation*scale))/scale;
 
 						for (int i = 0; i < 4; i++){for (int j = 0; j < 4; j++){colours[i][j] = 0.0f;}}
 						colours[0][0] = 1.0f; colours[1][0] = 1.0f; colours[2][0] = 1.0f; colours[3][0] = 1.0f;
 
 						GenerateCubic(&geometry, &shader, vertices, colours);
-						RenderBezier(&geometry, &shader);
+						//RenderBezier(&geometry, &shader);
 						break;
 					}
 				}
 			}
-
+			advance = advance + glyph.advance;
+		}
+	}
 			break;
 		}
 

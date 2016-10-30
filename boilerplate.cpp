@@ -15,10 +15,15 @@
 #include <algorithm>
 #include <string>
 #include <iterator>
+#include "GlyphExtractor.h"
 
 // specify that we want the OpenGL core profile before including GLFW headers
-#define GLFW_INCLUDE_GLCOREARB
-#define GL_GLEXT_PROTOTYPES
+#ifndef LAB_LINUX
+	#include <glad/glad.h>
+#else
+	#define GLFW_INCLUDE_GLCOREARB
+	#define GL_GLEXT_PROTOTYPES
+#endif
 #include <GLFW/glfw3.h>
 
 static int level = 1; // Level of program
@@ -167,6 +172,106 @@ struct MyGeometry
 	MyGeometry() : vertexBuffer(0), colourBuffer(0), vertexArray(0), elementCount(0)
 	{}
 };
+
+void GeneratePoint(MyGeometry *geometry, MyShader *shader, GLfloat (*coordinates)[2], GLfloat (*colour)[3])
+{
+	GLfloat vertices[][2] = {
+		{ coordinates[0][0], coordinates[0][1]}
+	};
+
+	GLfloat colours[][3] = {
+		{ colour[0][0], colour[0][1], colour[0][2] }
+	};
+
+	geometry->elementCount = 1;
+
+	// these vertex attribute indices correspond to those specified for the
+	// input variables in the vertex shader
+	const GLuint VERTEX_INDEX = 0;
+	const GLuint COLOUR_INDEX = 1;
+
+	// create an array buffer object for storing our vertices
+	glGenBuffers(1, &geometry->vertexBuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, geometry->vertexBuffer);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+	// create another one for storing our colours
+	glGenBuffers(1, &geometry->colourBuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, geometry->colourBuffer);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(colours), colours, GL_STATIC_DRAW);
+
+	// create a vertex array object encapsulating all our vertex attributes
+	glGenVertexArrays(1, &geometry->vertexArray);
+	glBindVertexArray(geometry->vertexArray);
+
+	// associate the position array with the vertex array object
+	glBindBuffer(GL_ARRAY_BUFFER, geometry->vertexBuffer);
+	glVertexAttribPointer(VERTEX_INDEX, 2, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(VERTEX_INDEX);
+
+	// assocaite the colour array with the vertex array object
+	glBindBuffer(GL_ARRAY_BUFFER, geometry->colourBuffer);
+	glVertexAttribPointer(COLOUR_INDEX, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(COLOUR_INDEX);
+
+	// unbind our buffers, resetting to default state
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);
+
+	// check for OpenGL errors and return false if error occurred
+	CheckGLErrors();
+}
+
+void Generateline(MyGeometry *geometry, MyShader *shader, GLfloat (*coordinates)[2], GLfloat (*colour)[3])
+{
+	GLfloat vertices[][2] = {
+		{ coordinates[0][0], coordinates[0][1]},
+		{ coordinates[1][0], coordinates[1][1]}
+	};
+
+	GLfloat colours[][3] = {
+		{ colour[0][0], colour[0][1], colour[0][2] },
+		{ colour[1][0], colour[1][1], colour[1][2] }
+	};
+
+	geometry->elementCount = 2;
+
+	// these vertex attribute indices correspond to those specified for the
+	// input variables in the vertex shader
+	const GLuint VERTEX_INDEX = 0;
+	const GLuint COLOUR_INDEX = 1;
+
+	// create an array buffer object for storing our vertices
+	glGenBuffers(1, &geometry->vertexBuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, geometry->vertexBuffer);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+	// create another one for storing our colours
+	glGenBuffers(1, &geometry->colourBuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, geometry->colourBuffer);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(colours), colours, GL_STATIC_DRAW);
+
+	// create a vertex array object encapsulating all our vertex attributes
+	glGenVertexArrays(1, &geometry->vertexArray);
+	glBindVertexArray(geometry->vertexArray);
+
+	// associate the position array with the vertex array object
+	glBindBuffer(GL_ARRAY_BUFFER, geometry->vertexBuffer);
+	glVertexAttribPointer(VERTEX_INDEX, 2, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(VERTEX_INDEX);
+
+	// assocaite the colour array with the vertex array object
+	glBindBuffer(GL_ARRAY_BUFFER, geometry->colourBuffer);
+	glVertexAttribPointer(COLOUR_INDEX, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(COLOUR_INDEX);
+
+	// unbind our buffers, resetting to default state
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);
+
+	// check for OpenGL errors and return false if error occurred
+	CheckGLErrors();
+}
 
 void GenerateQuadratic(MyGeometry *geometry, MyShader *shader, GLfloat (*coordinates)[2], GLfloat (*colour)[3])
 {
@@ -444,7 +549,7 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
       switch (key)
       {
         case GLFW_KEY_RIGHT :
-        if (level < 4)
+        if (level < 6)
           level++;
 				else
 					level = 1;
@@ -453,7 +558,7 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
         if (level > 1)
           level--;
 				else
-					level = 4;
+					level = 6;
         break;
       }
     }
@@ -511,6 +616,10 @@ int main(int argc, char *argv[])
 	GLfloat vertices[4][2];
 	GLfloat colours[4][3];
 	float scale = 10.0f;
+
+	//Load a font file and extract a glyph
+	GlyphExtractor extractor;
+	extractor.LoadFontFile("fonts/AlexBrush-Regular.ttf");
 
 	// run an event-triggered main loop
 	while (!glfwWindowShouldClose(window))
@@ -735,6 +844,69 @@ int main(int argc, char *argv[])
 
 			GenerateCubic(&geometry, &shader, vertices, colours);
 			RenderBezier(&geometry, &shader);
+
+			break;
+			case 5 :
+			case 6 :
+			MyGlyph glyph = extractor.ExtractGlyph('a');
+			for (uint i = 0; i < glyph.contours.size(); i++) {
+				for (uint j = 0; j < glyph.contours[i].size(); j++) {
+					//cout << j << " " << i << " " << glyph.contours[i][j].degree << " " << glyph.contours[i][j].x[0] << " " << glyph.contours[i][j].x[1] << " " << glyph.contours[i][j].y[0] << " " << glyph.contours[i][j].y[1] << endl;
+
+					uint degree = glyph.contours[i][j].degree;
+					switch (degree) {
+						case 0:
+						vertices[0][0] = (float)glyph.contours[i][j].x[0];  vertices[0][1] = (float)glyph.contours[i][j].y[0];
+						for (int i = 0; i < 1; i++){for (int j = 0; j < 1; j++){colours[i][j] = 0.0f;}}
+						colours[0][0] = 1.0f;
+						GeneratePoint(&geometry, &shader, vertices, colours);
+						RenderControlPoints(&geometry, &shader);
+
+						break;
+						case 1:
+						vertices[0][0] = (float)glyph.contours[i][j].x[0];  vertices[0][1] = (float)glyph.contours[i][j].y[0];
+						vertices[1][0] = (float)glyph.contours[i][j].x[1];  vertices[1][1] = (float)glyph.contours[i][j].y[1];
+
+						for (int i = 0; i < 2; i++){for (int j = 0; j < 2; j++){colours[i][j] = 0.0f;}}
+						colours[0][0] = 1.0f; colours[1][0] = 1.0f;
+
+						Generateline(&geometry, &shader, vertices, colours);
+						RenderControlLines(&geometry, &shader);
+						break;
+						case 2:
+						glUseProgram(shader.program);
+						glUniform2f(loc1, 0.0, 0.0);
+						glPatchParameteri(GL_PATCH_VERTICES, 3);
+
+						vertices[0][0] = (float)glyph.contours[i][j].x[0];  vertices[0][1] = (float)glyph.contours[i][j].y[0];
+						vertices[1][0] = (float)glyph.contours[i][j].x[1];  vertices[1][1] = (float)glyph.contours[i][j].y[1];
+						vertices[2][0] = (float)glyph.contours[i][j].x[2];  vertices[2][1] = (float)glyph.contours[i][j].y[2];
+
+						for (int i = 0; i < 3; i++){for (int j = 0; j < 3; j++){colours[i][j] = 0.0f;}}
+						colours[0][0] = 1.0f; colours[1][0] = 1.0f; colours[2][0] = 1.0f;
+
+						GenerateQuadratic(&geometry, &shader, vertices, colours);
+						RenderBezier(&geometry, &shader);
+						break;
+						case 3:
+						glUseProgram(shader.program);
+						glUniform2f(loc1, 1.0, 0.0);
+						glPatchParameteri(GL_PATCH_VERTICES, 4);
+
+						vertices[0][0] = (float)glyph.contours[i][j].x[0];  vertices[0][1] = (float)glyph.contours[i][j].y[0];
+						vertices[1][0] = (float)glyph.contours[i][j].x[1];  vertices[1][1] = (float)glyph.contours[i][j].y[1];
+						vertices[2][0] = (float)glyph.contours[i][j].x[2];  vertices[2][1] = (float)glyph.contours[i][j].y[2];
+						vertices[3][0] = (float)glyph.contours[i][j].x[3];  vertices[3][1] = (float)glyph.contours[i][j].y[3];
+
+						for (int i = 0; i < 4; i++){for (int j = 0; j < 4; j++){colours[i][j] = 0.0f;}}
+						colours[0][0] = 1.0f; colours[1][0] = 1.0f; colours[2][0] = 1.0f; colours[3][0] = 1.0f;
+
+						GenerateCubic(&geometry, &shader, vertices, colours);
+						RenderBezier(&geometry, &shader);
+						break;
+					}
+				}
+			}
 
 			break;
 		}

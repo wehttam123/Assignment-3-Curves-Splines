@@ -505,6 +505,9 @@ int main(int argc, char *argv[])
 
 	glPointSize(5);
 
+	GLint loc1 = glGetUniformLocation(shader.program, "curves");
+	GLint loc2 = glGetUniformLocation(shader.programNoTess, "curves");
+
 	GLfloat vertices[4][2];
 	GLfloat colours[4][3];
 	float scale = 10.0f;
@@ -519,6 +522,12 @@ int main(int argc, char *argv[])
 		{
 			case 1 :
 			case 2 :
+
+			glUseProgram(shader.program);
+			glUniform2f(loc1, 0.0, 0.0);
+			glUseProgram(shader.programNoTess);
+			glUniform2f(loc2, 0.0, 0.0);
+
 			glPatchParameteri(GL_PATCH_VERTICES, 3);
 
 		vertices[0][0] = 1.0/scale; vertices[0][1] = 1.0/scale;
@@ -610,12 +619,105 @@ int main(int argc, char *argv[])
 			case 3 :
 			case 4 :
 
+			glUseProgram(shader.program);
+			glUniform2f(loc1, 1.0, 0.0);
+			glUseProgram(shader.programNoTess);
+			glUniform2f(loc2, 1.0, 0.0);
+
 			glPatchParameteri(GL_PATCH_VERTICES, 4);
 
 			vertices[0][0] = 1.0/scale;  vertices[0][1] = 1.0/scale;
 			vertices[1][0] = 4.0/scale;  vertices[1][1] = 0.0/scale;
 			vertices[2][0] = 6.0/scale;  vertices[2][1] = 2.0/scale;
 			vertices[3][0] = 9.0/scale;  vertices[3][1] = 1.0/scale;
+
+			if(level == 4){
+				for (int i = 0; i < 4; i++){for (int j = 0; j < 4; j++){colours[i][j] = 0.0f;}}
+				colours[0][0] = 1.0f; colours[0][1] = 1.0f; colours[1][0] = 1.0f; colours[1][1] = 1.0f; colours[2][0] = 1.0f; colours[2][1] = 1.0f; colours[3][0] = 1.0f; colours[3][1] = 1.0f;
+				GenerateCubic(&geometry, &shader, vertices, colours);
+				RenderControlLines(&geometry, &shader);
+				for (int i = 0; i < 4; i++){for (int j = 0; j < 4; j++){colours[i][j] = 0.0f;}}
+				colours[0][1] = 1.0f; colours[1][2] = 1.0f; colours[2][2] = 1.0f; colours[3][1] = 1.0f;
+				GenerateCubic(&geometry, &shader, vertices, colours);
+				RenderControlPoints(&geometry, &shader);
+			}
+
+			for (int i = 0; i < 4; i++){for (int j = 0; j < 4; j++){colours[i][j] = 0.0f;}}
+			colours[0][0] = 1.0f; colours[1][0] = 1.0f; colours[2][0] = 1.0f; colours[3][0] = 1.0f;
+
+			GenerateCubic(&geometry, &shader, vertices, colours);
+			RenderBezier(&geometry, &shader);
+
+			vertices[0][0] = 8.0/scale;  vertices[0][1] = 2.0/scale;
+			vertices[1][0] = 0.0/scale;  vertices[1][1] = 8.0/scale;
+			vertices[2][0] = 0.0/scale;  vertices[2][1] = -2.0/scale;
+			vertices[3][0] = 8.0/scale;  vertices[3][1] = 4.0/scale;
+
+			if(level == 4){
+				for (int i = 0; i < 4; i++){for (int j = 0; j < 4; j++){colours[i][j] = 0.0f;}}
+				colours[0][0] = 1.0f; colours[0][1] = 1.0f; colours[1][0] = 1.0f; colours[1][1] = 1.0f; colours[2][0] = 1.0f; colours[2][1] = 1.0f; colours[3][0] = 1.0f; colours[3][1] = 1.0f;
+				GenerateCubic(&geometry, &shader, vertices, colours);
+				RenderControlLines(&geometry, &shader);
+				for (int i = 0; i < 4; i++){for (int j = 0; j < 4; j++){colours[i][j] = 0.0f;}}
+				colours[0][1] = 1.0f; colours[1][2] = 1.0f; colours[2][2] = 1.0f; colours[3][1] = 1.0f;
+				GenerateCubic(&geometry, &shader, vertices, colours);
+				RenderControlPoints(&geometry, &shader);
+			}
+
+			for (int i = 0; i < 4; i++){for (int j = 0; j < 4; j++){colours[i][j] = 0.0f;}}
+			colours[0][0] = 1.0f; colours[1][0] = 1.0f; colours[2][0] = 1.0f; colours[3][0] = 1.0f;
+
+			GenerateCubic(&geometry, &shader, vertices, colours);
+			RenderBezier(&geometry, &shader);
+
+			vertices[0][0] = 5.0/scale;  vertices[0][1] = 3.0/scale;
+			vertices[1][0] = 3.0/scale;  vertices[1][1] = 2.0/scale;
+			vertices[2][0] = 3.0/scale;  vertices[2][1] = 3.0/scale;
+			vertices[3][0] = 5.0/scale;  vertices[3][1] = 2.0/scale;
+
+			if(level == 4){
+				for (int i = 0; i < 4; i++){for (int j = 0; j < 4; j++){colours[i][j] = 0.0f;}}
+				colours[0][0] = 1.0f; colours[0][1] = 1.0f; colours[1][0] = 1.0f; colours[1][1] = 1.0f; colours[2][0] = 1.0f; colours[2][1] = 1.0f; colours[3][0] = 1.0f; colours[3][1] = 1.0f;
+				GenerateCubic(&geometry, &shader, vertices, colours);
+				RenderControlLines(&geometry, &shader);
+				for (int i = 0; i < 4; i++){for (int j = 0; j < 4; j++){colours[i][j] = 0.0f;}}
+				colours[0][1] = 1.0f; colours[1][2] = 1.0f; colours[2][2] = 1.0f; colours[3][1] = 1.0f;
+				GenerateCubic(&geometry, &shader, vertices, colours);
+				RenderControlPoints(&geometry, &shader);
+			}
+
+			for (int i = 0; i < 4; i++){for (int j = 0; j < 4; j++){colours[i][j] = 0.0f;}}
+			colours[0][0] = 1.0f; colours[1][0] = 1.0f; colours[2][0] = 1.0f; colours[3][0] = 1.0f;
+
+			GenerateCubic(&geometry, &shader, vertices, colours);
+			RenderBezier(&geometry, &shader);
+
+			vertices[0][0] = 3.0/scale;  vertices[0][1] = 2.2/scale;
+			vertices[1][0] = 3.5/scale;  vertices[1][1] = 2.7/scale;
+			vertices[2][0] = 3.5/scale;  vertices[2][1] = 3.3/scale;
+			vertices[3][0] = 3.0/scale;  vertices[3][1] = 3.8/scale;
+
+			if(level == 4){
+				for (int i = 0; i < 4; i++){for (int j = 0; j < 4; j++){colours[i][j] = 0.0f;}}
+				colours[0][0] = 1.0f; colours[0][1] = 1.0f; colours[1][0] = 1.0f; colours[1][1] = 1.0f; colours[2][0] = 1.0f; colours[2][1] = 1.0f; colours[3][0] = 1.0f; colours[3][1] = 1.0f;
+				GenerateCubic(&geometry, &shader, vertices, colours);
+				RenderControlLines(&geometry, &shader);
+				for (int i = 0; i < 4; i++){for (int j = 0; j < 4; j++){colours[i][j] = 0.0f;}}
+				colours[0][1] = 1.0f; colours[1][2] = 1.0f; colours[2][2] = 1.0f; colours[3][1] = 1.0f;
+				GenerateCubic(&geometry, &shader, vertices, colours);
+				RenderControlPoints(&geometry, &shader);
+			}
+
+			for (int i = 0; i < 4; i++){for (int j = 0; j < 4; j++){colours[i][j] = 0.0f;}}
+			colours[0][0] = 1.0f; colours[1][0] = 1.0f; colours[2][0] = 1.0f; colours[3][0] = 1.0f;
+
+			GenerateCubic(&geometry, &shader, vertices, colours);
+			RenderBezier(&geometry, &shader);
+
+			vertices[0][0] = 2.8/scale;  vertices[0][1] = 3.5/scale;
+			vertices[1][0] = 2.4/scale;  vertices[1][1] = 3.8/scale;
+			vertices[2][0] = 2.4/scale;  vertices[2][1] = 3.2/scale;
+			vertices[3][0] = 2.8/scale;  vertices[3][1] = 3.5/scale;
 
 			if(level == 4){
 				for (int i = 0; i < 4; i++){for (int j = 0; j < 4; j++){colours[i][j] = 0.0f;}}
